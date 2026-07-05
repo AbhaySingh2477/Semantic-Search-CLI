@@ -39,3 +39,6 @@ src-tauri/target/
 
 # Logs
 *.log
+
+release/
+backend-dist/
