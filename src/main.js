@@ -19,6 +19,7 @@ import '@components/ui/nb-toast.js';
 import '@components/layout/nb-sidebar.js';
 import '@components/layout/nb-header.js';
 import '@components/layout/nb-shell.js';
+import '@components/ui/nb-onboarding.js';
 
 /* ── Import Document Components (Phase 2) ────────────── */
 import '@components/documents/nb-upload-zone.js';
@@ -107,6 +108,18 @@ async function initApp() {
 
   // 5. Check backend health
   await checkBackendHealth();
+
+  if (appStore.state.backendStatus === 'connected') {
+    try {
+      const res = await api.get('/settings/groq-status');
+      if (res.ok && !res.data.configured) {
+        const onboarding = document.createElement('nb-onboarding');
+        document.body.appendChild(onboarding);
+      }
+    } catch (e) {
+      console.warn("[App] Failed to check groq status", e);
+    }
+  }
 
   // 6. Hide boot screen
   const bootScreen = document.getElementById('boot-screen');

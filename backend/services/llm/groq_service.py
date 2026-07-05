@@ -33,9 +33,18 @@ class GroqService:
         self._timeout = timeout or settings.ollama_timeout
         self._base_url = "https://api.groq.com/openai/v1/chat/completions"
 
+    async def _get_api_key(self) -> str | None:
+        from infrastructure.repositories.sqlite_settings_repo import get_settings_repo
+        repo = get_settings_repo()
+        db_key = await repo.get_setting("groq_api_key")
+        if db_key and db_key.strip():
+            return db_key.strip()
+        return self._api_key
+
     async def is_available(self) -> bool:
         """Check if Groq API key is configured."""
-        if not self._api_key:
+        key = await self._get_api_key()
+        if not key:
             return False
         return True
 
@@ -57,13 +66,14 @@ class GroqService:
         **kwargs,
     ) -> str:
         """Non-streaming chat."""
-        if not self._api_key:
+        api_key = await self._get_api_key()
+        if not api_key:
             raise ValueError("Groq API key is not configured.")
 
         model_name = model or self._default_model
 
         headers = {
-            "Authorization": f"Bearer {self._api_key}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
 
@@ -104,13 +114,14 @@ class GroqService:
         **kwargs,
     ) -> AsyncGenerator[str, None]:
         """Streaming chat."""
-        if not self._api_key:
+        api_key = await self._get_api_key()
+        if not api_key:
             raise ValueError("Groq API key is not configured.")
 
         model_name = model or self._default_model
 
         headers = {
-            "Authorization": f"Bearer {self._api_key}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             "Accept": "text/event-stream",
         }
