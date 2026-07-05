@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     # ── LLM (Groq) ────────────────────────────────────
     
     groq_api_key: str = ""         # Set via NB_GROQ_API_KEY env var
-    groq_default_model: str = "gemma2-9b-it"
+    groq_default_model: str = "llama-3.1-8b-instant"
 
     # ── RAG Prompt ─────────────────────────────────────────────
     max_context_tokens: int = 4096

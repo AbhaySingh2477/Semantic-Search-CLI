@@ -123,8 +123,9 @@ class NotebookPage extends NbComponent {
     // Reuse existing session or create new one
     const listResult = await listSessions(this._notebookId);
     let session = null;
-    if (listResult.ok && listResult.data?.length > 0) {
-      session = listResult.data[0];
+    const sessions = listResult.data?.sessions || listResult.data || [];
+    if (listResult.ok && sessions.length > 0) {
+      session = sessions[0];
     } else {
       const createResult = await createSession(this._notebookId, '', 'Notebook Chat');
       if (createResult.ok && createResult.data) {

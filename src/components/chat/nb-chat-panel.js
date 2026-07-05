@@ -24,7 +24,6 @@ class NbChatPanel extends NbComponent {
       error: '',
       pinnedChunks: [],  // user-pinned search results
     });
-    requestAnimationFrame(() => this._bindEvents());
   }
 
   onUnmount() {
@@ -65,7 +64,6 @@ class NbChatPanel extends NbComponent {
       this.setState({ messages: result.data.messages || [] });
       requestAnimationFrame(() => {
         this._scrollToBottom();
-        this._bindEvents();
       });
     }
   }
@@ -238,12 +236,10 @@ class NbChatPanel extends NbComponent {
         lastMsgEl.appendToken('');
         // Update the content directly
         lastMsgEl.setState({ content, isStreaming: true });
-      } else {
         // Need to add a new message element
         this.state.messages = messages;
         this.update();
         requestAnimationFrame(() => {
-          this._bindEvents();
           this._hideThinking();
         });
       }
@@ -588,6 +584,7 @@ class NbChatPanel extends NbComponent {
     }
 
     // Update input state
+    this._bindEvents();
     this._updateInputState();
     this._renderPinnedPills();
   }

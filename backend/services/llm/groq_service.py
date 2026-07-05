@@ -30,7 +30,7 @@ class GroqService:
         settings = get_settings()
         self._api_key = api_key or settings.groq_api_key
         self._default_model = default_model or settings.groq_default_model
-        self._timeout = timeout or settings.ollama_timeout
+        self._timeout = timeout or 60
         self._base_url = "https://api.groq.com/openai/v1/chat/completions"
 
     async def _get_api_key(self) -> str | None:
@@ -53,10 +53,10 @@ class GroqService:
         List available Groq models (hardcoded for simplicity since Groq is API based).
         """
         return [
-            {"name": "LLaMA 3.1 8B", "model": "llama-3.1-8b-instant"},
-            {"name": "LLaMA 3.3 70B", "model": "llama-3.3-70b-versatile"},
-            {"name": "Mixtral 8x7B", "model": "mixtral-8x7b-32768"},
-            {"name": "Gemma 7B", "model": "gemma-7b-it"},
+            {"name": "LLaMA 3.1 8B (Fast)", "model": "llama-3.1-8b-instant"},
+            {"name": "LLaMA 3.3 70B (Smart)", "model": "llama-3.3-70b-versatile"},
+            {"name": "LLaMA 3 70B", "model": "llama3-70b-8192"},
+            {"name": "LLaMA 3 8B", "model": "llama3-8b-8192"},
         ]
 
     async def chat(
@@ -158,8 +158,10 @@ class GroqService:
                                 continue
 
         except httpx.HTTPStatusError as e:
-            logger.error(f"Groq stream HTTP error [{model_name}]: {e.response.text}")
-            raise
+            await e.response.aread()
+            error_text = e.response.text
+            logger.error(f"Groq stream HTTP error [{model_name}]: {error_text}")
+            raise ValueError(f"Groq API Error: {error_text}")
         except Exception as e:
             logger.error(f"Groq stream failed [{model_name}]: {e}")
             raise

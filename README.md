@@ -2,6 +2,8 @@
 
 A production-grade, 100% private local NotebookLM clone powered by Electron, Vite, FastAPI, and ChromaDB.
 
+**📖 [Project Journal & Architecture Notes](https://docs.google.com/document/d/13Ebd1HE2SsDoSZJCsdlB2Kuicas5quFaeyCpt_AATTQ/edit?usp=sharing)**
+
 ## Installation Guide
 
 Since this is an unsigned open-source application, your operating system may show security warnings during installation.
