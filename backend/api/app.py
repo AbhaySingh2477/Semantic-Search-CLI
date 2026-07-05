@@ -95,8 +95,10 @@ def create_app() -> FastAPI:
     from api.routes.chat import router as chat_router
     app.include_router(chat_router, prefix="/api")
 
+    from api.routes.notebooks import router as notebooks_router
+    app.include_router(notebooks_router, prefix="/api")
+
     # Future route registrations:
-    # from api.routes.notebooks import router as notebooks_router
     # from api.routes.models import router as models_router
     # from api.routes.settings import router as settings_router
     # from api.routes.stats import router as stats_router

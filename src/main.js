@@ -37,13 +37,19 @@ import '@components/chat/nb-message.js';
 import '@components/chat/nb-chat-input.js';
 import '@components/chat/nb-chat-panel.js';
 
+import '@pages/dashboard-page.js';
 import '@pages/notebook-page.js';
 
 /* ── Route Definitions ───────────────────────────────────── */
 const routes = [
   {
     path: '/',
-    title: 'Notebooks',
+    title: 'Dashboard',
+    component: () => document.createElement('dashboard-page'),
+  },
+  {
+    path: '/notebooks/:id',
+    title: 'Notebook',
     component: () => document.createElement('notebook-page'),
   },
   {

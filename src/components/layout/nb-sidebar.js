@@ -11,7 +11,7 @@ import { useRouter } from '@core/router.js';
 import { eventBus, Events } from '@core/events.js';
 
 const NAV_ITEMS = [
-  { id: 'notebooks',  icon: 'book-open',      label: 'Notebooks',  path: '/' },
+  { id: 'dashboard',  icon: 'layout',      label: 'Dashboard',  path: '/' },
 ];
 
 class NbSidebar extends NbComponent {
