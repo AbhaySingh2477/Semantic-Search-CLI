@@ -4,6 +4,11 @@ A production-grade, 100% private local NotebookLM clone powered by Electron, Vit
 
 **🌐 [Download NotebookLM Local App](https://local-rag-for-file-system-fourth-project-6ptnut8ha.vercel.app/)**
 **📖 [Project Journal & Architecture Notes](https://docs.google.com/document/d/13Ebd1HE2SsDoSZJCsdlB2Kuicas5quFaeyCpt_AATTQ/edit?usp=sharing)**
+
+## Preview
+
+![Sample 1](images/image1.png)
+![Sample 2](images/image2.png)
 ## Installation Guide
 
 Since this is an unsigned open-source application, your operating system may show security warnings during installation.
