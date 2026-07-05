@@ -6,7 +6,7 @@ A production-grade, 100% private local NotebookLM clone powered by Electron, Vit
 
 Since this is an unsigned open-source application, your operating system may show security warnings during installation.
 
-### 🍏 macOS Installation
+###  macOS Installation
 If macOS says the application is **"damaged and can't be opened"**, it's because Apple's Gatekeeper blocked the unsigned app. To fix this:
 1. Drag `NotebookLM Local.app` to your **Applications** folder.
 2. Open the **Terminal** app.
