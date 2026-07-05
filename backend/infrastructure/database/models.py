@@ -100,6 +100,7 @@ class ChatSessionModel(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     notebook_id: Mapped[str] = mapped_column(String(36), ForeignKey("notebooks.id"), nullable=False)
     title: Mapped[str] = mapped_column(String(255), default="New Chat")
+    summary: Mapped[str] = mapped_column(Text, default="")
     model_id: Mapped[str] = mapped_column(String(100), default="")
     message_count: Mapped[int] = mapped_column(Integer, default=0)
     settings_json: Mapped[dict | None] = mapped_column(JSON, default=None)

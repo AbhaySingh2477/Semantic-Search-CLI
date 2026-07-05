@@ -17,12 +17,14 @@ from __future__ import annotations
 
 import logging
 import time
+import asyncio
 import uuid
 from datetime import datetime, timezone
 from typing import Any, AsyncGenerator
 
 from domain.entities import ChatSession, Message, MessageRole
 from services.llm.ollama_service import OllamaService, get_ollama_service
+from services.llm.groq_service import GroqService, get_groq_service
 from services.llm.prompt_builder import PromptBuilder, get_prompt_builder
 from services.retrieval.retrieval_engine import RetrievalEngine, get_retrieval_engine
 from services.retrieval.context_builder import ContextBuilder, get_context_builder
@@ -52,6 +54,7 @@ class ChatWithDocuments:
         context_builder: ContextBuilder | None = None,
         prompt_builder: PromptBuilder | None = None,
         ollama_service: OllamaService | None = None,
+        groq_service: GroqService | None = None,
         citation_engine: CitationEngine | None = None,
     ):
         self._chat_repo = chat_repo
@@ -59,7 +62,9 @@ class ChatWithDocuments:
         self._context = context_builder or get_context_builder()
         self._prompt = prompt_builder or get_prompt_builder()
         self._ollama = ollama_service or get_ollama_service()
+        self._groq = groq_service or get_groq_service()
         self._citations = citation_engine or get_citation_engine()
+        self._settings = get_settings()
 
     async def send_message(
         self,
@@ -184,14 +189,25 @@ class ChatWithDocuments:
                 query=content,
                 chunks=context_chunks,
                 history=history,
+                session_summary=session.summary,
             )
 
             # ── Step 7: Stream LLM response ───────────────────
             full_response = []
 
-            async for token in self._ollama.chat_stream(
+            # Choose LLM based on settings
+            if await self._groq.is_available():
+                llm = self._groq
+                model_to_use = self._settings.groq_default_model
+                logger.info(f"Using Groq API for chat (model={model_to_use})")
+            else:
+                llm = self._ollama
+                model_to_use = model or session.model_id or None
+                logger.info("Using local Ollama for chat")
+
+            async for token in llm.chat_stream(
                 messages=messages,
-                model=model or session.model_id or None,
+                model=model_to_use,
             ):
                 full_response.append(token)
                 yield {"type": "token", "content": token}
@@ -236,6 +252,13 @@ class ChatWithDocuments:
             if citations:
                 await self._chat_repo.add_citations(citations)
 
+            # ── Step 9.5: Iterative Summarization (Background) ─
+            # We count user msg (+1) since message_count in session was before we added user and assistant.
+            # Actually, session.message_count was what we retrieved at the start.
+            # Let's trigger every 10 messages (5 turns).
+            if (session.message_count + 2) % 10 == 0:
+                asyncio.create_task(self._summarize_history_async(session_id))
+
             # ── Step 10: Auto-title (first message) ───────────
             if session.title == "New Chat" and content:
                 auto_title = content[:60].strip()
@@ -259,3 +282,52 @@ class ChatWithDocuments:
                 "type": "error",
                 "message": f"Chat failed: {str(e)}",
             }
+
+    async def _summarize_history_async(self, session_id: str) -> None:
+        """Background task to condense conversation history into a running summary."""
+        try:
+            # 1. Reload session and history
+            session = await self._chat_repo.get_session(session_id)
+            if not session:
+                return
+            
+            # Fetch last 10 messages (5 turns)
+            messages = await self._chat_repo.get_messages(session_id, limit=10)
+            if len(messages) < 10:
+                return
+                
+            # Format messages
+            history_text = "\n".join(
+                f"{m.role.value if hasattr(m.role, 'value') else m.role}: {m.content}" for m in messages
+            )
+            
+            # 2. Build summarization prompt
+            prompt = [
+                {
+                    "role": "system",
+                    "content": "You are an expert conversation summarizer. Your job is to condense the provided conversation history into a cohesive running summary. Preserve key concepts, questions asked, and critical insights. Keep it concise."
+                },
+                {
+                    "role": "user",
+                    "content": f"Current Summary:\n{session.summary}\n\nNew Messages:\n{history_text}\n\nPlease generate a new, updated running summary."
+                }
+            ]
+            
+            # 3. Call LLM
+            if await self._groq.is_available():
+                llm = self._groq
+                model_to_use = self._settings.groq_default_model
+            else:
+                llm = self._ollama
+                model_to_use = session.model_id or None
+
+            new_summary = await llm.chat(messages=prompt, model=model_to_use)
+            new_summary = new_summary.strip()
+            
+            if new_summary:
+                # 4. Save to DB
+                await self._chat_repo.update_session_summary(session_id, new_summary)
+                logger.info(f"Updated running summary for session {session_id}")
+                
+        except Exception as e:
+            logger.error(f"Failed to summarize history for session {session_id}: {e}", exc_info=True)

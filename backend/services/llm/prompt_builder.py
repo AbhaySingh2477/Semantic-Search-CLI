@@ -31,6 +31,7 @@ SYSTEM_PROMPT_TEMPLATE = """You are a knowledgeable AI research assistant. Answe
 
 {sources}
 
+{summary_block}
 ---
 
 Answer the user's question based on the sources above. Always cite which source(s) you used."""
@@ -92,12 +93,13 @@ class PromptBuilder:
         self._max_context_tokens = max_context_tokens or settings.max_context_tokens
         self._max_history_messages = max_history_messages or settings.max_history_messages
 
-    def build_system_prompt(self, chunks: list[dict[str, Any]]) -> str:
+    def build_system_prompt(self, chunks: list[dict[str, Any]], session_summary: str = "") -> str:
         """
-        Build the system prompt with formatted source documents.
+        Build the system prompt with formatted source documents and running summary.
 
         Args:
             chunks: List of chunk dicts from the retrieval engine.
+            session_summary: Running conversation summary for long-term memory.
 
         Returns:
             Formatted system prompt string.
@@ -112,13 +114,16 @@ class PromptBuilder:
             sources.append(formatted)
 
         sources_text = "\n\n---\n\n".join(sources)
-        return SYSTEM_PROMPT_TEMPLATE.format(sources=sources_text)
+        summary_block = f"## Previous Conversation Summary\n\n{session_summary}\n" if session_summary else ""
+        
+        return SYSTEM_PROMPT_TEMPLATE.format(sources=sources_text, summary_block=summary_block)
 
     def build_messages(
         self,
         query: str,
         chunks: list[dict[str, Any]],
         history: list[dict[str, str]] | None = None,
+        session_summary: str = "",
     ) -> list[dict[str, str]]:
         """
         Build the complete message list for Ollama.
@@ -127,13 +132,14 @@ class PromptBuilder:
             query: The user's current question.
             chunks: Retrieved and ranked chunks.
             history: Previous conversation messages [{role, content}, ...].
+            session_summary: The running summary of the conversation.
 
         Returns:
             List of message dicts ready for Ollama:
             [system, ...history, user_query]
         """
         # Build system prompt
-        system_prompt = self.build_system_prompt(chunks)
+        system_prompt = self.build_system_prompt(chunks, session_summary)
         system_tokens = _count_tokens_approx(system_prompt)
         query_tokens = _count_tokens_approx(query)
 

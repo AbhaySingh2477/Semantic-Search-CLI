@@ -37,57 +37,14 @@ import '@components/chat/nb-message.js';
 import '@components/chat/nb-chat-input.js';
 import '@components/chat/nb-chat-panel.js';
 
-/* ── Import Pages ────────────────────────────────────────── */
-import '@pages/dashboard-page.js';
 import '@pages/notebook-page.js';
-import '@pages/search-page.js';
-import '@pages/chat-page.js';
 
 /* ── Route Definitions ───────────────────────────────────── */
 const routes = [
   {
     path: '/',
-    title: 'Dashboard',
-    component: () => document.createElement('dashboard-page'),
-  },
-  {
-    path: '/notebooks',
     title: 'Notebooks',
     component: () => document.createElement('notebook-page'),
-  },
-  {
-    path: '/search',
-    title: 'Semantic Search',
-    component: () => document.createElement('search-page'),
-  },
-  {
-    path: '/chat',
-    title: 'Chat',
-    component: () => document.createElement('chat-page'),
-  },
-  {
-    path: '/models',
-    title: 'Models',
-    component: () => {
-      const el = document.createElement('div');
-      el.innerHTML = `<div style="padding:40px;color:var(--color-text-secondary)">
-        <h2 style="color:var(--color-text-primary);margin-bottom:8px">Model Manager</h2>
-        <p>Coming in Phase 5 — Download and manage Ollama models.</p>
-      </div>`;
-      return el;
-    },
-  },
-  {
-    path: '/settings',
-    title: 'Settings',
-    component: () => {
-      const el = document.createElement('div');
-      el.innerHTML = `<div style="padding:40px;color:var(--color-text-secondary)">
-        <h2 style="color:var(--color-text-primary);margin-bottom:8px">Settings</h2>
-        <p>Coming in Phase 5 — Application configuration.</p>
-      </div>`;
-      return el;
-    },
   },
   {
     path: '*',
@@ -139,8 +96,7 @@ async function initApp() {
 
   // Track page changes
   router.afterEach((to) => {
-    appStore.state.currentPage = to.route?.path === '/' ? 'dashboard' :
-      to.path?.slice(1)?.split('/')[0] || 'dashboard';
+    appStore.state.currentPage = 'notebooks';
   });
 
   // 5. Check backend health

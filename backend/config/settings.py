@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     embedding_device: str = "cpu"  # 'cpu' | 'cuda' | 'mps'
 
     # ── Reranker Model ─────────────────────────────────────────
+    reranker_enabled: bool = False # Disabled by default to save CPU
     reranker_model: str = "BAAI/bge-reranker-v2-m3"
     reranker_device: str = "cpu"
 
@@ -66,10 +67,13 @@ class Settings(BaseSettings):
     rerank_top_k: int = 5          # After reranking (lowered for CPU)
     search_mode: str = "hybrid"    # 'vector' | 'keyword' | 'hybrid'
 
-    # ── Ollama ─────────────────────────────────────────────────
+    # ── LLM (Ollama & Groq) ────────────────────────────────────
     ollama_base_url: str = "http://localhost:11434"
     ollama_default_model: str = "llama3.2"
     ollama_timeout: int = 120      # seconds
+    
+    groq_api_key: str = ""         # Set via NB_GROQ_API_KEY env var
+    groq_default_model: str = "gemma2-9b-it"
 
     # ── RAG Prompt ─────────────────────────────────────────────
     max_context_tokens: int = 4096

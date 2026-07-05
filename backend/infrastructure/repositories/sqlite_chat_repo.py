@@ -43,6 +43,7 @@ class SQLiteChatRepository(ChatRepository):
             id=session.id,
             notebook_id=session.notebook_id,
             title=session.title,
+            summary=session.summary,
             model_id=session.model_id,
             message_count=0,
             settings_json=session.settings,
@@ -130,6 +131,18 @@ class SQLiteChatRepository(ChatRepository):
             update(ChatSessionModel)
             .where(ChatSessionModel.id == session_id)
             .values(title=title, updated_at=_now())
+        )
+        await self._session.execute(stmt)
+        await self._session.commit()
+
+    async def update_session_summary(
+        self, session_id: str, summary: str
+    ) -> None:
+        """Update the running summary of a chat session."""
+        stmt = (
+            update(ChatSessionModel)
+            .where(ChatSessionModel.id == session_id)
+            .values(summary=summary, updated_at=_now())
         )
         await self._session.execute(stmt)
         await self._session.commit()
@@ -239,6 +252,7 @@ class SQLiteChatRepository(ChatRepository):
             id=model.id,
             notebook_id=model.notebook_id,
             title=model.title,
+            summary=model.summary,
             model_id=model.model_id,
             message_count=model.message_count,
             settings=model.settings_json or {},

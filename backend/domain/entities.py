@@ -106,6 +106,7 @@ class ChatSession:
     id: str = field(default_factory=_uuid)
     notebook_id: str = ""
     title: str = "New Chat"
+    summary: str = ""
     model_id: str = ""
     message_count: int = 0
     settings: dict[str, Any] = field(default_factory=dict)

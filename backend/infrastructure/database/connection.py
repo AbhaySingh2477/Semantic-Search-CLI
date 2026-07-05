@@ -62,9 +62,18 @@ async def get_session() -> AsyncSession:
 async def init_database() -> None:
     """Initialize the database — create all tables."""
     from .models import Base as ModelBase  # noqa: F811
+    from sqlalchemy import text
+    import logging
     engine = get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(ModelBase.metadata.create_all)
+        
+        # Simple schema migration for iterative summary
+        try:
+            await conn.execute(text("ALTER TABLE chat_sessions ADD COLUMN summary TEXT DEFAULT ''"))
+        except Exception as e:
+            if "duplicate column name" not in str(e).lower():
+                logging.getLogger(__name__).debug(f"Migration (summary col): {e}")
 
 
 async def close_database() -> None:

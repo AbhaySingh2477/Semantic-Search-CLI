@@ -192,8 +192,9 @@ class RetrievalEngine:
             f"Search '{query_clean[:50]}' [{search_mode}] → {len(raw_results)} raw results"
         )
 
-        # Step 3: Rerank (optional)
-        if rerank and raw_results and search_mode != "keyword":
+        # Step 3: Rerank (optional, driven by settings)
+        do_rerank = rerank and self._settings.reranker_enabled
+        if do_rerank and raw_results and search_mode != "keyword":
             reranked = self._reranker.rerank(
                 query=query_clean,
                 documents=raw_results,
